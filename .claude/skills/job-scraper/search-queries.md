@@ -1,90 +1,106 @@
 # Search Queries for Job Scraper
 
-<!-- SETUP: Customize these queries based on your skills, target roles, and location -->
+<!-- Market: France, Paris / Ile-de-France. Target: alternance (apprenticeship) Data Scientist, Master level. -->
 
 ## Installed portal CLIs (primary for `/scrape`)
 
-`/scrape` discovers every portal skill under `.agents/skills/*/SKILL.md` and runs its CLI first. Shipped country-agnostic CLIs include `linkedin-search` and `freehire-search`; Danish demos and any skill you add with `/add-portal` are included the same way. You do **not** need a matching `site:` line below for those CLIs to run.
+`/scrape` discovers every portal skill under `.agents/skills/*/SKILL.md` and runs its CLI first. Enabled for the French market:
 
-The `site:` query templates in this file are the **WebSearch fallback** — for portals without a CLI, company career pages, or when a CLI fails.
+| CLI | What it covers | How to scope it to this search |
+|---|---|---|
+| `labonnealternance-search` | French State apprenticeship portal (France Travail + partner boards) | `-l "Paris" --radius 30` (offers only, spontaneous-application companies excluded by default) |
+| `wttj-search` | Welcome to the Jungle (tech, data, startups, large groups) | `-r "Ile-de-France" -c apprenticeship` |
+| `linkedin-search` | LinkedIn public listings | `-l "Paris, Île-de-France, France"` (the bare "Île-de-France, France" string resolves to the wrong place) |
+| `freehire-search` | freehire.me aggregator | `--country FR` |
 
-**Language scope:** write every query category in every language listed in your CLAUDE.md Languages table (typically 1-2, sometimes more). A posting requiring a language you have *not* declared, as a job condition, is excluded before scoring; a posting requiring a *higher level* than you declared in a language you *do* work in is flagged for your own judgment, not excluded — see `04-job-evaluation.md`'s Language Gate, the single source of truth for this rule. Translate each category's keywords rather than machine-translating word-for-word (e.g. "Frontend Developer" -> "Desarrollador Frontend", not a literal word-for-word translation) if you work in more than one language.
+The four Danish portals ship disabled (`enabled: false`) and stay off.
+
+The `site:` query templates below are the **WebSearch fallback** — for boards without a CLI or when a CLI fails. HelloWork and APEC have no CLI on purpose: HelloWork's robots.txt disallows its search pages, and APEC sits behind DataDome bot protection, so they are covered only through WebSearch.
+
+**Language scope:** every category is written in French and English: French postings dominate in Paris, but many large groups and startups post in English.
 
 ## Search Sites
 
-Primary (your market's job boards - scaffold one with `/add-portal`):
-- **[YOUR_JOB_BOARD]** - your market's largest general job board
-- **linkedin.com/jobs** - LinkedIn job listings (filter: [YOUR_COUNTRY] / [YOUR_CITY]); also covered by `linkedin-search` CLI
-- **[YOUR_INDUSTRY_JOB_BOARD]** - a niche/industry board for your field (optional)
-- **[YOUR_ADDITIONAL_JOB_BOARD]** - another major board for your market (optional)
+Primary (CLIs):
+- **labonnealternance.apprentissage.beta.gouv.fr** - all apprenticeship offers, State portal
+- **welcometothejungle.com** - tech/data offers, many alternances
+- **linkedin.com/jobs** - LinkedIn listings, Paris area
+- **freehire.me** - aggregator, France
 
-Secondary (company career pages via Google):
-- Direct Google searches with `site:` filters for known target companies
+Fallback (WebSearch only):
+- **hellowork.com** - large French general board, many alternances
+- **apec.fr** - executive/Bac+5 board
+- **jobteaser.com** - student board (school partnerships)
+- **indeed.fr** - general board
 
 ## Query Categories
 
-Queries are grouped by priority. Write **each category in every language from your Languages table** (see Language scope above). Combine each query with your location terms (e.g. your city, region, or metro area) where the site supports it.
+**Organize by function, not job title.** The same work is posted as "Data Scientist", "Data Analyst", "Machine Learning Engineer" or "Chargé d'études statistiques" depending on the company.
 
-**Organize by function, not job title.** The same underlying work carries different titles across companies and markets (a "Data Scientist" role at one employer may be posted as "Insights Analyst" or "Data Consultant" at another). Name each priority category after the function it covers, and list several plausible job titles as query variants within that category rather than betting an entire priority tier on one exact title string.
+### Priority 1: Data Science / Machine Learning (alternance)
 
-### Priority 1: [YOUR_PRIMARY_ROLE_TYPE]
-
-These match your strongest and most desired career direction.
+CLI keywords: `data scientist`, `machine learning`, `data science`, `IA`, `data` (broad, for WTTJ which requires every word).
 
 ```
-site:[YOUR_JOB_BOARD] "[YOUR_PRIMARY_JOB_TITLE_1]" [YOUR_CITY]
-site:[YOUR_JOB_BOARD] "[YOUR_PRIMARY_JOB_TITLE_2]" [YOUR_CITY]
-site:[YOUR_JOB_BOARD] "[YOUR_KEY_SKILL]" [YOUR_CITY]
-site:linkedin.com/jobs "[YOUR_PRIMARY_JOB_TITLE_1]" [YOUR_COUNTRY]
+site:hellowork.com/fr-fr/emplois "data scientist" alternance Paris
+site:welcometothejungle.com "data scientist" alternance
+site:linkedin.com/jobs "data scientist" alternance Paris
+site:apec.fr "data scientist" alternance Île-de-France
+site:jobteaser.com "data scientist" alternance Paris
+"data scientist" apprenticeship Paris
+"machine learning" alternance Paris
 ```
 
-### Priority 2: [YOUR_DOMAIN_EXPERTISE]
+### Priority 2: Data Analysis / Statistics (alternance)
 
-These match your domain expertise.
-
-```
-site:[YOUR_JOB_BOARD] [YOUR_DOMAIN_KEYWORD_1] [YOUR_CITY] OR [YOUR_REGION]
-site:[YOUR_JOB_BOARD] [YOUR_DOMAIN_KEYWORD_2] [YOUR_COUNTRY]
-site:linkedin.com/jobs [YOUR_DOMAIN_KEYWORD_1] [YOUR_CITY] [YOUR_COUNTRY]
-```
-
-### Priority 3: [YOUR_ADJACENT_ROLE_TYPE]
-
-Adjacent roles you could pivot into.
+CLI keywords: `data analyst`, `analyste de données`, `statisticien`, `chargé d'études statistiques`, `business intelligence`.
 
 ```
-site:[YOUR_JOB_BOARD] "[YOUR_ADJACENT_TITLE_1]" [YOUR_KEY_SKILL] [YOUR_CITY]
-site:[YOUR_JOB_BOARD] "[YOUR_ADJACENT_TITLE_2]" [YOUR_KEY_SKILL] [YOUR_CITY]
+site:hellowork.com/fr-fr/emplois "data analyst" alternance Paris
+site:hellowork.com/fr-fr/emplois "chargé d'études statistiques" alternance
+site:linkedin.com/jobs "data analyst" alternance Paris
+"data analyst" apprenticeship Paris
 ```
 
-### Priority 4: Broader Technical / Consulting
+### Priority 3: Data Engineering / MLOps (adjacent)
 
-Wider net for general technical roles.
+CLI keywords: `data engineer`, `ingénieur data`, `MLOps`.
 
 ```
-site:[YOUR_JOB_BOARD] [YOUR_KEY_SKILL] developer [YOUR_CITY]
-site:linkedin.com/jobs "[YOUR_KEY_SKILL] developer" [YOUR_CITY]
-site:[YOUR_JOB_BOARD] "technical consultant" [YOUR_DOMAIN] [YOUR_CITY]
+site:hellowork.com/fr-fr/emplois "data engineer" alternance Paris
+site:linkedin.com/jobs "data engineer" alternance Paris
+```
+
+### Priority 4: Broader quantitative roles
+
+CLI keywords: `actuariat`, `biostatistique`, `quantitative`, `risk analyst`.
+
+```
+site:hellowork.com/fr-fr/emplois alternance actuariat Paris
+site:hellowork.com/fr-fr/emplois alternance biostatistique Île-de-France
 ```
 
 ## Location Filter
 
-When evaluating results, verify the job location is within reasonable commute distance from your home. Define acceptable areas:
-- [YOUR_CITY] and surrounding areas
-- [ACCEPTABLE_AREA_1]
-- [ACCEPTABLE_AREA_2]
-- [BORDERLINE_AREA] (borderline - ~X min by transit)
-- [TOO_FAR_AREA] (too far)
+Commute from Paris by public transport:
+- Paris (75) and the inner ring: Hauts-de-Seine (92, La Défense, Boulogne, Nanterre), Seine-Saint-Denis (93), Val-de-Marne (94) - ideal
+- Outer ring with a direct RER/Transilien line: Massy, Palaiseau / Saclay, Cergy, Saint-Quentin-en-Yvelines, Marne-la-Vallée - acceptable
+- Rest of Ile-de-France (Meaux, Melun, Rambouillet...) - borderline (~1h15+ by transit)
+- Outside Ile-de-France - too far, unless the offer is full remote
 
 ## Language Filter
 
-Your working languages and levels are in CLAUDE.md's Languages table. When filtering scraped results, apply `04-job-evaluation.md`'s Language Gate: a posting requiring a language you haven't declared at all is excluded; a posting requiring a higher level than you declared in a language you do work in is not excluded, flag it clearly instead (see `job-scraper/SKILL.md`'s Step 3 "Quick Fit Assessment" for how the flag surfaces in `/scrape` output). Postings simply *written* in a language you don't work in, that don't require it on the job, are fine.
+Apply `04-job-evaluation.md`'s Language Gate with the Languages table in CLAUDE.md. Postings in English are fine; a posting requiring a language not declared there is excluded.
 
 ## Date Filter
 
-Only include jobs posted within the last 14 days, or with an application deadline that has not yet passed. If a posting date cannot be determined, include it but flag as "date unknown".
+Only include offers posted within the last 14 days, or with an application deadline (`validThrough`) that has not passed. Alternance offers for a September start are posted from January to September: an older offer with a future deadline is still valid. If a posting date cannot be determined, include it but flag it as "date unknown".
+
+## Contract Filter
+
+Keep **alternance** offers: apprentissage and contrat de professionnalisation. A "Stage / Alternance" title is fine. Pure internships (stage only), CDI and CDD are out unless the user asks for them.
 
 ## Adapting Queries
 
 If the user specifies a focus area, select queries from the matching category and also generate 2-3 custom queries for that focus. For example:
-- "/scrape [focus_area]" -> relevant category queries + custom focus-specific queries
+- "/scrape NLP" -> Priority 1 queries + `"NLP" alternance Paris`, `"traitement du langage" alternance`
